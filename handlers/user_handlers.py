@@ -12,6 +12,7 @@ from data import work_with_data
 from typing import Union
 import pandas as pd
 from aiogram.types import File, FSInputFile
+from aiogram.exceptions import TelegramNotFound
 
 # Инициализируем роутер уровня модуля
 router = Router()
@@ -218,6 +219,7 @@ async def process_stat_command(message: Message):
 @router.message()
 async def send_echo(message: Message):
     try:
-        await message.reply("Что-то пошло не так")
-    except TypeError:
         await message.reply(text=LEXICON_RU['no_echo'])
+    except TelegramNotFound:
+        print("chat, message, user, etc. not found")
+        return
