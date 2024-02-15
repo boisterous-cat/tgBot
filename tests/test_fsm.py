@@ -5,7 +5,7 @@ from aiogram import Dispatcher
 from aiogram.enums import ChatType
 from aiogram.fsm.state import default_state
 from aiogram.fsm.context import StorageKey, FSMContext
-from aiogram.methods import SendMessage
+from aiogram.methods import SendMessage, SendPhoto
 from aiogram.methods.base import TelegramType
 from aiogram.types import Message, Update, User, Chat
 
@@ -112,6 +112,7 @@ async def test_states_flow_orders(dp: Dispatcher, bot: MockedBot):
 
     # Отправляем корректное значение
     bot.add_result_for(SendMessage, ok=True)
+    bot.add_result_for(SendPhoto, ok=True)
     await dp.feed_update(bot, Update(message=make_message(str(random.randint(1, 500))), update_id=1))
 
     # Получаем отправленное ботом сообщение
