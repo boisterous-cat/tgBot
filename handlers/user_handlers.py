@@ -66,13 +66,13 @@ async def process_co_sent(message: Message, state: FSMContext):
 
 # Этот хэндлер будет срабатывать, если во время ввода co
 # будет введено что-то некорректное
-@router.message(StateFilter(FSMFillForm.fill_co))
-async def warning_not_co(message: Message):
-    await message.answer(
-        text='Уровень CO должен быть целым числом от 0 до 200\n\n'
-             'Попробуйте еще раз\n\nЕсли вы хотите прервать '
-             'заполнение данных - отправьте команду /cancel'
-    )
+# @router.message(StateFilter(FSMFillForm.fill_co))
+# async def warning_not_co(message: Message):
+#     await message.answer(
+#         text='Уровень CO должен быть целым числом от 0 до 200\n\n'
+#              'Попробуйте еще раз\n\nЕсли вы хотите прервать '
+#              'заполнение данных - отправьте команду /cancel'
+#     )
 
 
 # Этот хэндлер будет срабатывать, если введен корректный no
@@ -89,12 +89,13 @@ async def process_no_sent(message: Message, state: FSMContext):
     await state.set_state(FSMFillForm.fill_ozone)
 
 
-# Этот хэндлер будет срабатывать, если во время ввода no
+# Этот хэндлер будет срабатывать, если во время ввода no или CO
 # будет введено что-то некорректное
+@router.message(StateFilter(FSMFillForm.fill_co))
 @router.message(StateFilter(FSMFillForm.fill_no))
 async def warning_not_no(message: Message):
     await message.answer(
-        text='Уровень NO должен быть целым числом от 0 до 200\n\n'
+        text='Некорректный ввод. Показатель должен быть целым числом от 0 до 200\n\n'
              'Попробуйте еще раз\n\nЕсли вы хотите прервать '
              'заполнение данных - отправьте команду /cancel'
     )
