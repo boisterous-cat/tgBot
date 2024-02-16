@@ -1,6 +1,5 @@
-from aiogram.types.web_app_info import WebAppInfo
 from lexicon.lexicon_ru import MENU_COMMANDS_RU
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # Создаем объекты инлайн-кнопок
 github_button = InlineKeyboardButton(
@@ -35,5 +34,3 @@ df_show_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[[top_10],
                      [less_10]]
 )
-
-

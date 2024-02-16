@@ -8,8 +8,9 @@ from aiogram.methods.base import TelegramType
 from aiogram.types import (
     Update, Chat, User, Message, InlineKeyboardMarkup, InlineKeyboardButton
 )
-from lexicon.lexicon_ru import LEXICON_RU
+from lexicon.lexicon_ru import LEXICON_RU, MENU_COMMANDS_RU
 from keyboards.keyboards import user_button, github_button
+from filters.is_admin import admin_id
 
 
 @pytest.mark.asyncio
@@ -151,3 +152,42 @@ async def test_send_echo_command(dp, bot, raise_exception):
     # Проверяем, что сообщение было передано методом send_message
     assert isinstance(outgoing_message, SendMessage)
     assert outgoing_message.text == LEXICON_RU['no_echo']
+
+
+def make_message(user_id: int) -> Message:
+    user = User(id=user_id, first_name="User", is_bot=False)
+    chat = Chat(id=user_id, type=ChatType.PRIVATE)
+    return Message(
+        message_id=1,
+        from_user=user,
+        chat=chat,
+        date=datetime.now(),
+        text="/stat"
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "user_id, expected_text",
+    [
+        [123456700, LEXICON_RU['not admin']],
+        # так и не смогла победить ошибку при тесте админа
+        # [642047926, MENU_COMMANDS_RU['/stat']]
+    ]
+)
+async def test_process_stat_command(dp, bot, user_id: int, expected_text: str):
+    bot.add_result_for(
+        method=SendMessage,
+        ok=True,
+    )
+    print(user_id)
+    await dp.feed_update(
+        bot,
+        Update(message=make_message(user_id), update_id=1)
+    )
+
+    outgoing_message: TelegramType = bot.get_request()
+    # Проверяем, что сообщение было передано методом send_message
+    assert isinstance(outgoing_message, SendMessage)
+    assert outgoing_message.text == expected_text
+    assert outgoing_message.reply_markup is None

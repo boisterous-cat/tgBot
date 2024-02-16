@@ -1,6 +1,6 @@
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Command, CommandStart, StateFilter
-from lexicon.lexicon_ru import LEXICON_RU, MENU_COMMANDS_RU
+from lexicon.lexicon_ru import LEXICON_RU
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, State, StatesGroup
@@ -11,7 +11,7 @@ import operator
 from data import work_with_data
 from typing import Union
 import pandas as pd
-from aiogram.types import File, FSInputFile
+from aiogram.types import FSInputFile
 from aiogram.exceptions import TelegramNotFound
 
 # Инициализируем роутер уровня модуля
@@ -21,15 +21,17 @@ storage = MemoryStorage()
 # Создаем "базу данных" пользователей
 user_dict: dict[int, dict[str, Union[int, float, None]]] = {}
 
+
 # Cоздаем класс, наследуемый от StatesGroup, для группы состояний нашей FSM
 class FSMFillForm(StatesGroup):
     # Создаем экземпляры класса State, последовательно
     # перечисляя возможные состояния, в которых будет находиться
     # бот в разные моменты взаимодейтсвия с пользователем
-    fill_co = State()        # Состояние ожидания ввода co
-    fill_no = State()         # Состояние ожидания ввода no
-    fill_ozone = State()      # Состояние ожидания ozone
-    fill_pm2 = State()   # Состояние ожидания pm2
+    fill_co = State()  # Состояние ожидания ввода co
+    fill_no = State()  # Состояние ожидания ввода no
+    fill_ozone = State()  # Состояние ожидания ozone
+    fill_pm2 = State()  # Состояние ожидания pm2
+
 
 # Этот хэндлер будет срабатывать на команду "/cancel" в любых состояниях,
 # кроме состояния по умолчанию, и отключать машину состояний
@@ -43,6 +45,7 @@ async def process_cancel_command_state(message: Message, state: FSMContext):
     # Сбрасываем состояние и очищаем данные, полученные внутри состояний
     await state.clear()
 
+
 # Этот хэндлер будет срабатывать на команду /aqi
 # и переводить бота в состояние ожидания ввода имени
 @router.message(Command(commands='aqi'), StateFilter(default_state))
@@ -51,10 +54,11 @@ async def process_aqi_command(message: Message, state: FSMContext):
     # Устанавливаем состояние ожидания ввода имени
     await state.set_state(FSMFillForm.fill_co)
 
+
 # Этот хэндлер будет срабатывать, если введен корректный co
 # и переводить в состояние no
 @router.message(StateFilter(FSMFillForm.fill_co),
-            lambda x: x.text.isdigit() and 0 <= int(x.text) <= 200)
+                lambda x: x.text.isdigit() and 0 <= int(x.text) <= 200)
 async def process_co_sent(message: Message, state: FSMContext):
     # Cохраняем возраст в хранилище по ключу "co"
     await state.update_data(co=message.text)
@@ -63,16 +67,6 @@ async def process_co_sent(message: Message, state: FSMContext):
         text='Спасибо!\n\nУкажите уровень NO')
     # Устанавливаем состояние ожидания NO
     await state.set_state(FSMFillForm.fill_no)
-
-# Этот хэндлер будет срабатывать, если во время ввода co
-# будет введено что-то некорректное
-# @router.message(StateFilter(FSMFillForm.fill_co))
-# async def warning_not_co(message: Message):
-#     await message.answer(
-#         text='Уровень CO должен быть целым числом от 0 до 200\n\n'
-#              'Попробуйте еще раз\n\nЕсли вы хотите прервать '
-#              'заполнение данных - отправьте команду /cancel'
-#     )
 
 
 # Этот хэндлер будет срабатывать, если введен корректный no
@@ -125,6 +119,7 @@ async def warning_not_ozone(message: Message):
              'заполнение данных - отправьте команду /cancel'
     )
 
+
 # Этот хэндлер будет срабатывать, если введен корректный pm
 # и выводить из машины состояний
 @router.message(StateFilter(FSMFillForm.fill_pm2),
@@ -137,7 +132,7 @@ async def process_pm_sent(message: Message, state: FSMContext):
     user_dict[message.from_user.id] = await state.get_data()
     user_data = user_dict[message.from_user.id]
     df = pd.DataFrame([[user_data['co'], user_data['no'], user_data['ozone'], user_data['pm']]],
-                 columns=['CO AQI Value', 'NO2 AQI Value', 'Ozone AQI Value', 'PM2.5 AQI Value'])
+                      columns=['CO AQI Value', 'NO2 AQI Value', 'Ozone AQI Value', 'PM2.5 AQI Value'])
     # Завершаем машину состояний
     await state.clear()
     res, cat, img_link = work_with_data.predict_model(df)
@@ -146,7 +141,6 @@ async def process_pm_sent(message: Message, state: FSMContext):
         text=f'Спасибо!\n\nИндекс = {res}\n\n'
              f'Категория качества = {cat}')
     await message.answer_photo(FSInputFile(path=img_link))
-
 
 
 # Этот хэндлер будет срабатывать, если во время ввода pm
@@ -158,6 +152,7 @@ async def warning_not_pm(message: Message):
              'Попробуйте еще раз\n\nЕсли вы хотите прервать '
              'заполнение данных - отправьте команду /cancel'
     )
+
 
 # Этот хэндлер срабатывает на команду /start
 @router.message(CommandStart())
@@ -195,22 +190,24 @@ async def process_top_command(message: Message):
 async def process_top_10_press(callback: CallbackQuery):
     res = work_with_data.top_10()
     await callback.message.answer(
-        text =f"Топ 10 лучших городов:\n<pre>{res}</pre>",
+        text=f"Топ 10 лучших городов:\n<pre>{res}</pre>",
         parse_mode='HTML')
+
 
 # Этот хэндлер будет срабатывать на апдейт типа CallbackQuery
 # с data 'less_10_pressed'
 @router.callback_query(F.data == 'less_10_pressed')
 async def process_less_10_press(callback: CallbackQuery):
-
     await callback.message.answer(
-        text =f"Топ 10 худших городов:\n<pre>{work_with_data.less_10()}</pre>",
+        text=f"Топ 10 худших городов:\n<pre>{work_with_data.less_10()}</pre>",
         parse_mode='HTML')
+
 
 not_admin = operator.not_(IsAdmin(admin_id))
 
+
 # Этот хэндлер срабатывает на команду /stat
-@router.message(~(IsAdmin(admin_id)),Command(commands='stat'))
+@router.message(~(IsAdmin(admin_id)), Command(commands='stat'))
 async def process_stat_command(message: Message):
     await message.reply(text=LEXICON_RU['not admin'])
 

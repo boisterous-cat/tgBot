@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from aiogram.dispatcher.event.bases import UNHANDLED
 from aiogram.enums import ChatType
-from aiogram.methods import SendMessage, AnswerCallbackQuery
+from aiogram.methods import SendMessage
 from aiogram.methods.base import TelegramType
 from aiogram.types import (
     Update, Chat, User, Message, CallbackQuery,

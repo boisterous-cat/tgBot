@@ -1,24 +1,11 @@
 import pandas as pd
 import gzip
 import pickle
-import json
-from typing import List, Optional
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LogisticRegression
-from pandas import json_normalize
-
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split, cross_val_score, KFold
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import r2_score, mean_squared_error
-from sklearn.neighbors import KNeighborsRegressor
 
 
 with gzip.open('data/pickle_model.pkl', 'rb') as ifp:
     MODEL = pickle.load(ifp)
+
 
 def load_data():
     return pd.read_csv("data/prep_data.csv", index_col=False)
@@ -26,17 +13,20 @@ def load_data():
 
 final = load_data()
 
+
 def top_10():
-    blankIndex = [''] * len(final)
+    blank_index = [''] * len(final)
     df = final[['AQI Value', 'Country', 'City']].copy().sort_values(by=['AQI Value'])
-    df.index = blankIndex
+    df.index = blank_index
     return df.head(10)
 
+
 def less_10():
-    blankIndex = [''] * len(final)
-    df2= final[['AQI Value', 'Country', 'City']].copy().sort_values(by=['AQI Value'], ascending=False)
-    df2.index = blankIndex
+    blank_index = [''] * len(final)
+    df2 = final[['AQI Value', 'Country', 'City']].copy().sort_values(by=['AQI Value'], ascending=False)
+    df2.index = blank_index
     return df2.head(10)
+
 
 def get_cat(x):
     if x <= 50:
@@ -49,8 +39,9 @@ def get_cat(x):
         return "Unhealthy"
     elif x <= 300:
         return "Very Unhealthy"
-    elif x >300:
+    elif x > 300:
         return "Hazardous"
+
 
 def get_img(x):
     if "Good" in x:
@@ -66,9 +57,10 @@ def get_img(x):
     elif "Hazardous" in x:
         return "images/haz.png"
 
+
 def predict_model(df):
     prediction = MODEL.predict(df)
     cat = get_cat(prediction[0])
     img_link = get_img(cat)
 
-    return prediction[0],cat, img_link
+    return prediction[0], cat, img_link

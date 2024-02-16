@@ -4,11 +4,11 @@ import pytest
 from aiogram import Dispatcher
 from aiogram.enums import ChatType
 from aiogram.fsm.state import default_state
-from aiogram.fsm.context import StorageKey, FSMContext
+from aiogram.fsm.context import FSMContext
 from aiogram.methods import SendMessage, SendPhoto
 from aiogram.methods.base import TelegramType
 from aiogram.types import Message, Update, User, Chat
-
+from aiogram.dispatcher.event.bases import UNHANDLED
 from handlers.user_handlers import FSMFillForm
 from tests.mocked_aiogram import MockedBot
 
@@ -19,6 +19,7 @@ def make_message(text: str) -> Message:
     user = User(id=user_id, first_name="User", is_bot=False)
     chat = Chat(id=user_id, type=ChatType.PRIVATE)
     return Message(message_id=1, from_user=user, chat=chat, date=datetime.now(), text=text)
+
 
 @pytest.mark.asyncio
 async def test_states_flow_orders(dp: Dispatcher, bot: MockedBot):
@@ -118,9 +119,30 @@ async def test_states_flow_orders(dp: Dispatcher, bot: MockedBot):
     # Получаем отправленное ботом сообщение
     outgoing_message: TelegramType = bot.get_request()
     # Проверяем, что бот написал правильно
-    #assert isinstance(outgoing_message, SendMessage)
     assert "Спасибо!" in outgoing_message.text
 
     # Проверяем, что стейт сбросился
+    current_state = await fsm_context.get_state()
+    assert current_state is None
+
+
+# Тестируем состояние cancel
+@pytest.mark.asyncio
+async def test_cancel_command(dp, bot):
+    # Подготавливаем нужный стейт
+    fsm_context: FSMContext = dp.fsm.get_context(bot=bot, user_id=user_id, chat_id=user_id)
+    await fsm_context.set_state(FSMFillForm.fill_pm2)
+    bot.add_result_for(method=SendMessage, ok=True)
+
+    # "Скармливаем" созданное сообщение
+    result = await dp.feed_update(
+          bot,
+          Update(message=make_message("/cancel"), update_id=1)
+        )
+
+    assert result is not UNHANDLED
+    # Получаем сообщение, которое отправил наш бот
+    outgoing_message: TelegramType = bot.get_request()
+    assert isinstance(outgoing_message, SendMessage)
     current_state = await fsm_context.get_state()
     assert current_state is None
