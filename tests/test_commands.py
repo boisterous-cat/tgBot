@@ -8,9 +8,8 @@ from aiogram.methods.base import TelegramType
 from aiogram.types import (
     Update, Chat, User, Message, InlineKeyboardMarkup, InlineKeyboardButton
 )
-from lexicon.lexicon_ru import LEXICON_RU, MENU_COMMANDS_RU
+from lexicon.lexicon_ru import LEXICON_RU
 from keyboards.keyboards import user_button, github_button
-from filters.is_admin import admin_id
 
 
 @pytest.mark.asyncio
